@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.media.infra.ChannelRefProgramRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.media.domain.ChannelRefProgramVO"
+               id="channelRefProgramResultMap">
+        <result column="fd_channelId" property="channelId"/>
+        <result column="fd_programId" property="programId"/>
+    </resultMap>
+
+    <!--保存节目和频道关联信息-->
+    <insert id="save" parameterType="map">
+        INSERT INTO ch_channel_ref_program (fd_channelId,fd_programId) VALUES(#{channelId},#{programId})
+    </insert>
+</mapper>

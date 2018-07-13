@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.poster.infra.PosterRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.poster.domain.Poster" id="posterResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_mediaId" property="mediaId"/>
+        <result column="fd_type" property="type"/>
+        <result column="fd_title" property="title"/>
+        <result column="fd_serial" property="serial"/>
+        <result column="fd_small" property="small"/>
+        <result column="fd_middle" property="middle"/>
+        <result column="fd_large" property="large"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+
+    <select id="selectPosterByMediaId" resultMap="posterResultMap">
+        SELECT fd_id,fd_middle,fd_large,fd_type FROM me_poster
+        where fd_mediaId = #{_parameter}
+    </select>
+
+    <select id="selectAllMediaIds" resultType="integer">
+        select
+            fd_mediaId
+        from
+            me_poster
+    </select>
+
+    <update id="updateLargeByMediaId" parameterType="map">
+        update
+            me_poster
+        set
+            fd_large = #{large}
+        where
+            fd_mediaId = #{mediaId}
+    </update>
+
+    <select id="selectPostersByMediaId" resultMap="posterResultMap">
+        select * from me_poster where fd_mediaId = #{mediaId}
+    </select>
+</mapper>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.media.infra.MediaRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.media.domain.Media" id="mediaResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_parentId" property="parentId"/>
+        <result column="fd_videoId" property="videoId"/>
+        <result column="fd_playCount" property="playCount"/>
+        <result column="fd_category" property="category"/>
+        <result column="fd_properties" property="properties"/>
+        <result column="fd_pkgType" property="pkgType"/>
+        <result column="fd_type" property="type"/>
+        <result column="fd_name" property="name"/>
+        <result column="fd_enName" property="enName"/>
+        <result column="fd_aliasName" property="aliasName"/>
+        <result column="fd_pinyin" property="pinyin"/>
+        <result column="fd_doubanScore" property="doubanScore"/>
+        <result column="fd_imdbScore" property="imdbScore"/>
+        <result column="fd_playLength" property="playLength"/>
+        <result column="fd_terminal" property="terminal"/>
+        <result column="fd_starring" property="starring"/>
+        <result column="fd_director" property="director"/>
+        <result column="fd_total" property="total"/>
+        <result column="fd_state" property="state"/>
+        <result column="fd_serial" property="serial"/>
+        <result column="fd_upsaleDate" property="upsaleDate"/>
+        <result column="fd_searchCount" property="searchCount"/>
+        <result column="fd_introduce" property="introduce"/>
+        <result column="fd_detail" property="detail"/>
+        <result column="fd_remark" property="remark"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+    <!--根据传入的影片名字和影片类型查询该媒资对应的媒资包信息-->
+    <select id="selectMediaByName" parameterType="map" resultMap="mediaResultMap">
+        select * from me_media
+        where fd_name =#{title} and fd_pkgType=#{pkgType} and fd_type="packages"
+        limit 1
+    </select>
+    <!-- 根据传入的媒资包的fd_videoId 来查询该媒资包里面的所有影片-->
+    <select id="selectMediasByVideoId" parameterType="Integer" resultMap="mediaResultMap">
+        select * from me_media
+        where fd_parentId =#{pkgId}
+    </select>
+
+    <insert id="saveMedia" parameterType="Media" keyProperty="id" useGeneratedKeys="true">
+        insert into me_media
+        (fd_parentId,fd_videoId,fd_playCount,fd_category,fd_properties,fd_pkgType,fd_type,fd_name,fd_enName,fd_aliasName,fd_pinyin,
+        fd_doubanScore,fd_imdbScore,fd_playLength,fd_terminal,fd_starring,fd_director,
+        fd_total,fd_state,fd_serial,fd_upsaleDate,fd_searchCount,fd_introduce,fd_detail,
+        fd_remark,fd_createDate,fd_updateDate)
+        values
+        (#{parentId},#{videoId},#{playCount},#{category},#{properties},#{pkgType},#{type},#{name},#{enName},#{aliasName},#{pinyin},
+        #{doubanScore},#{imdbScore},#{playLength},#{terminal},#{starring},#{director},#{total},
+        #{state},#{serial},#{upsaleDate},#{searchCount},#{introduce},#{detail},#{remark},
+        #{createDate},#{updateDate})
+    </insert>
+
+    <!--包内新增子集的时候，把包的更新时间修改为当前的时间-->
+    <update id="updatePkgDate">
+        update me_media set fd_updateDate=#{updateTime} where fd_id=#{id}
+    </update>
+
+    <!--搜索引擎-->
+    <!--年代 地区-->
+    <resultMap id="searchPosterResultMap" type="com.yunzhitx.mediacrawler.core.media.domain.Media" extends="mediaResultMap">
+        <association property="area" column="fd_id"
+                     select="com.yunzhitx.mediacrawler.core.categorypropertyvalue.infra.CategoryPropertyValueRepository.selectAreaByMediaId"/>
+        <association property="year" column="fd_id"
+                     select="com.yunzhitx.mediacrawler.core.categorypropertyvalue.infra.CategoryPropertyValueRepository.selectYearByMediaId"/>
+    </resultMap>
+    <!--获取对应的来源类型 查找海报-->
+    <resultMap id="searchTypeResultMap" type="com.yunzhitx.mediacrawler.core.media.domain.Media" extends="mediaResultMap">
+        <collection property="posterVOS" column="fd_id"
+                    select="com.yunzhitx.mediacrawler.core.poster.infra.PosterRepository.selectPosterByMediaId"/>
+        <collection property="resourceTypeVOS" column="{parentId=fd_id}"
+                    select="com.yunzhitx.mediacrawler.core.resourcetype.infra.ResourceTypeRepository.selectResourceTypeByMediaId"/>
+    </resultMap>
+
+    <select id="getMediaDetail" resultMap="searchTypeResultMap">
+        select * from me_media where fd_id = #{_parameter}
+    </select>
+    <!--搜索引擎-->
+
+    <!--修改包的总集数和集数-->
+    <update id="updatePKGTotalAndSerial">
+        update me_media set fd_serial=#{maxSerial}
+        where fd_id=#{id}
+    </update>
+
+    <select id="selectMediaByMap" parameterType="map" resultMap="mediaResultMap">
+        select
+            *
+        from
+            me_media
+        <where>
+            <foreach collection="params" item="item" index="index" open=" and" separator=" and">
+                ${index} = #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="selectCountByParentAndFieldName" parameterType="map" resultType="integer">
+        select
+            count(mr.fd_id)
+        from
+            media_resource mr
+        left join
+            me_media mm on mr.fd_mediaId=mm.fd_id
+        where
+            mm.fd_id in (select fd_id from me_media where fd_parentId=#{parentId})
+            and mr.fd_fieldName=#{fieldName}
+    </select>
+
+    <select id="selectIdsByMistake" resultType="java.lang.Integer">
+        <![CDATA[select
+            mm.fd_id
+        from
+            me_media mm
+        left join
+            me_media_ref_category mmrc on mm.fd_id = mmrc.fd_mediaId
+        where
+            mm.fd_parentId=0
+            and mm.fd_type="single"
+            and mm.fd_pkgType="资讯"
+            and mm.fd_createDate > "2018-04-26 09:59:41"
+            and mm.fd_createDate < "2018-04-26 10:02:36"
+
+            and mmrc.fd_propertyValueId=30000159
+            and mmrc.fd_propertyId=20000029]]>
+    </select>
+
+    <!--<select id="selectByMap" parameterType="java.util.Map" resultMap="mediaResultMap">-->
+        <!--select * from me_media-->
+        <!--<where>-->
+            <!--<foreach collection="params" item="item" index="index" open=" and"-->
+                     <!--separator=" and">-->
+                <!--${index} = #{item}-->
+            <!--</foreach>-->
+        <!--</where>-->
+    <!--</select>-->
+
+    <select id="countByMap" parameterType="java.util.Map" resultType="integer">
+        select count(1) from me_media
+        <where>
+            <foreach collection="params" item="item" index="index" open=" and"
+                     separator=" and">
+                ${index} = #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="selectMediaIdIfMediaPackageExsit" parameterType="java.util.Map" resultType="integer">
+        select
+            fd_Id
+        from
+            me_media
+        where
+            fd_pkgType = #{fd_pkgType}
+            and fd_name = #{fd_name}
+            and fd_type = #{fd_type}
+    </select>
+
+    <select id="selectMediaResoureExsit" parameterType="java.util.Map" resultType="integer">
+        select
+            count(1)
+        from
+            media_resource
+        where
+            fd_resourceTypeId = #{fd_resourceTypeId} and fd_mediaId in (select fd_id from me_media where fd_parentId=#{packageMediaId})
+    </select>
+
+    <select id="selectIdsRepeatPosters" resultType="integer">
+        select fd_id from me_media where fd_type="single" and fd_pkgType="资讯" and fd_createDate > "2018-06-14 20:32:53" and fd_id in (select m.fd_mediaId from me_poster m group by m.fd_mediaId having count(m.fd_mediaId) > 2)
+    </select>
+
+    <select id="selectIdsRepeatMedia" resultType="integer">
+        select fd_parentId from me_media where fd_pkgType="资讯" and fd_createDate > "2018-06-14 00:00:00" and fd_parentId != 0 group by fd_parentId having count(fd_parentId)>1 order by fd_name
+    </select>
+
+    <select id="selectSubMediaIdListByParentId" resultType="integer">
+        select fd_id from me_media where fd_parentId = #{mediaId}
+    </select>
+
+    <select id="selectMaxSerialByPackageMediaId" resultType="integer">
+        select ifnull(max(mm.fd_serial),0) from me_media mm left join media_resource mr on mm.fd_id=mr.fd_mediaId where mm.fd_parentId = #{mediaId} and mr.fd_resourceTypeId=#{resourceType}
+    </select>
+
+
+</mapper>

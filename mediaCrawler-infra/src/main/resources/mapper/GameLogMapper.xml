@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.worldcup.infra.GameLogRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.worldcup.domain.GameLog" id="gameLogResultMap">
+          <id column="fd_id" property="id" />
+          <result column="teamLeftId" property="teamLeftId" />
+          <result column="teamRightId" property="teamRightId" />
+          <result column="playUrl" property="playUrl" />
+          <result column="beginTime" property="beginTime" />
+          <result column="finishTime" property="finishTime" />
+        <result column="fd_createDate" property="createDate" />
+        <result column="fd_updateDate" property="updateDate" />
+        <result column="gameIndex" property="gameIndex" />
+        <result column="highlightUrl" property="highlightUrl" />
+    </resultMap>
+
+    <!-- 根据主键ID查询GameLog -->
+    <!--
+    <select id="selectDetailById" resultMap="gameLogResultMap" parameterType="java.lang.Integer">
+        SELECT *
+        FROM wc_game_log
+        WHERE fd_id = #{_parameter}
+    </select>
+    -->
+
+</mapper>

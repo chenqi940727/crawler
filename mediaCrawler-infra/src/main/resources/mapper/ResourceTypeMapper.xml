@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.resourcetype.infra.ResourceTypeRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.resourcetype.domain.ResourceType" id="resourceTypeResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_name" property="name"/>
+        <result column="fd_fieldName" property="fieldName"/>
+        <result column="fd_pinyin" property="pinyin"/>
+        <result column="fd_serial" property="serial"/>
+        <result column="fd_remark" property="remark"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+
+    <!-- 根据媒资子集来源查询有那些来源-->
+    <select id="selectResourceTypeByMediaId" resultMap="resourceTypeResultMap">
+        SELECT
+        fd_id,fd_fieldName
+        FROM media_resource_type
+        WHERE fd_id in (
+        SELECT fd_resourceTypeId FROM media_resource WHERE fd_mediaId in (
+        SELECT fd_id FROM me_media WHERE fd_parentId = #{parentId}
+        ) GROUP BY fd_resourceTypeId
+        )
+    </select>
+</mapper>

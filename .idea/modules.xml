@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/mediaCrawler.iml" filepath="$PROJECT_DIR$/mediaCrawler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mediaCrawler-application/mediaCrawler-application.iml" filepath="$PROJECT_DIR$/mediaCrawler-application/mediaCrawler-application.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mediaCrawler-domain/mediaCrawler-domain.iml" filepath="$PROJECT_DIR$/mediaCrawler-domain/mediaCrawler-domain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mediaCrawler-infra/mediaCrawler-infra.iml" filepath="$PROJECT_DIR$/mediaCrawler-infra/mediaCrawler-infra.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mediaCrawler-rest/mediaCrawler-rest.iml" filepath="$PROJECT_DIR$/mediaCrawler-rest/mediaCrawler-rest.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <excludeFromCompile>
+      <file url="file://$PROJECT_DIR$/mediaCrawler-rest/src/main/java/com/yunzhitx/mediacrawler/web/rest/iqiyicrawler/IQYFilmCrawler2.java" />
+    </excludeFromCompile>
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mediaCrawler-application" />
+        <module name="mediaCrawler-domain" />
+        <module name="mediaCrawler-infra" />
+        <module name="mediaCrawler-rest" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="mediaCrawler" target="1.8" />
+      <module name="mediaCrawler-application" target="1.8" />
+      <module name="mediaCrawler-domain" target="1.8" />
+      <module name="mediaCrawler-infra" target="1.8" />
+      <module name="mediaCrawler-rest" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

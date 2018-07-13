@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.media.infra.ChannelRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.media.domain.ChannelVO" id="channelResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_name" property="name"/>
+        <result column="fd_playCode" property="playCode"/>
+        <result column="fd_playCount" property="playCount"/>
+        <result column="fd_ssChannelId" property="ssChannelId"/>
+        <result column="fd_resolution" property="resolution"/>
+        <result column="fd_logoUrl" property="logoUrl"/>
+        <result column="fd_liveRealImg" property="liveRealImg"/>
+        <result column="fd_del" property="del"/>
+        <result column="fd_display" property="display"/>
+        <result column="fd_remark" property="remark"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+
+    <!--获取频道分页列表-->
+    <select id="getChannelPage" resultMap="channelResultMap">
+        SELECT
+        fd_id,fd_name,fd_playCode,fd_ssChannelId,fd_logoUrl,fd_del,fd_display,fd_remark,fd_createDate
+        FROM ch_channel
+    </select>
+
+    <!-- 根据频道id获取该频道的详情-->
+    <select id="getChannelDetail" resultMap="channelResultMap">
+        SELECT
+            fd_id,fd_name,fd_playCode,fd_ssChannelId,fd_logoUrl,fd_del,fd_display,fd_remark,fd_createDate
+        FROM ch_channel
+        where fd_id=#{_parameter}
+    </select>
+</mapper>

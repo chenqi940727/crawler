@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.yunzhitx.cloud:cloud-common-model:1.0-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/yunzhitx/cloud/cloud-common-model/1.0-SNAPSHOT/cloud-common-model-1.0-20180201.021622-33.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/yunzhitx/cloud/cloud-common-model/1.0-SNAPSHOT/cloud-common-model-1.0-20180201.021622-33-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/yunzhitx/cloud/cloud-common-model/1.0-SNAPSHOT/cloud-common-model-1.0-20180201.021622-33-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

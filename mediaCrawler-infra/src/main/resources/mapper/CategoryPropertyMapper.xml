@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.categoryproperty.infra.CategoryPropertyRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.categoryproperty.domain.CategoryProperty"
+               id="categoryPropertyResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_parentId" property="parentId"/>
+        <result column="fd_categoryId" property="categoryId"/>
+        <result column="fd_name" property="name"/>
+        <result column="fd_fieldName" property="fieldName"/>
+        <result column="fd_fieldType" property="fieldType"/>
+        <result column="fd_fieldValueLength" property="fieldValueLength"/>
+        <result column="fd_fieldValueRegex" property="fieldValueRegex"/>
+        <result column="fd_isRequried" property="isRequried"/>
+        <result column="fd_terminal" property="terminal"/>
+        <result column="fd_icon" property="icon"/>
+        <result column="fd_isShow" property="isShow"/>
+        <result column="fd_serial" property="serial"/>
+        <result column="fd_remark" property="remark"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+    <!--查询年代的属性和属性值信息-->
+    <select id="selectYearByCategoryId" parameterType="int" resultMap="categoryPropertyResultMap">
+        select * from me_category_property where fd_categoryId=#{id} and fd_name="年代"
+    </select>
+    <!--查询地区的属性和属性值信息-->
+    <select id="selectAreaByCategoryId" parameterType="int" resultMap="categoryPropertyResultMap">
+        select * from me_category_property where fd_categoryId=#{id} and fd_name="地区"
+    </select>
+    <!--查询类型的属性和属性值信息-->
+    <select id="selectTypeByCategoryId" parameterType="int" resultMap="categoryPropertyResultMap">
+        select * from me_category_property where fd_categoryId=#{id} and fd_name="类型"
+    </select>
+
+    <select id="selectByCategoryId" resultType="int" resultMap="categoryPropertyResultMap">
+        select * from me_category_property where fd_categoryId=#{id}
+    </select>
+</mapper>

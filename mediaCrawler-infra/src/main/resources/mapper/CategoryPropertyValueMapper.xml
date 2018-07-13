@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.categorypropertyvalue.infra.CategoryPropertyValueRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.categorypropertyvalue.domain.CategoryPropertyValue"
+               id="categoryPropertyValueResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_propertyId" property="propertyId"/>
+        <result column="fd_name" property="name"/>
+        <result column="fd_fieldName" property="fieldName"/>
+        <result column="fd_icon" property="icon"/>
+        <result column="fd_isShow" property="isShow"/>
+        <result column="fd_serial" property="serial"/>
+        <result column="fd_remark" property="remark"/>
+        <result column="fd_terminal" property="terminal"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+    <!--根据传入的参数获取某个具体属性id-->
+    <select id="selectPropertyValueById" resultMap="categoryPropertyValueResultMap">
+        select * from me_category_property_value where fd_propertyId=#{id} and fd_name like concat (#{params},"%")
+    </select>
+
+    <!--保存属性值-->
+    <insert id="saveCPV" parameterType="CategoryPropertyValue" keyProperty="id" useGeneratedKeys="true">
+        insert into me_category_property_value
+        (fd_propertyId,fd_name,fd_fieldName,fd_isShow,fd_terminal)
+        values
+        (#{propertyId},#{name},#{fieldName},#{isShow},#{terminal})
+    </insert>
+
+    <!--搜索引擎-->
+    <!--根据媒资包id获取该媒资包对应的地区-->
+    <select id="selectAreaByMediaId"  resultMap="categoryPropertyValueResultMap">
+        SELECT fd_id,fd_name FROM me_category_property_value
+        WHERE fd_id =(
+        SELECT DISTINCT(fd_propertyValueId) FROM me_media_ref_category WHERE fd_mediaId=#{_parameter} AND fd_property='地区' limit 1
+        )
+    </select>
+    <!--根据媒资包id获取该媒资包对应的年代-->
+    <select id="selectYearByMediaId"  resultMap="categoryPropertyValueResultMap">
+        SELECT fd_id,fd_name FROM me_category_property_value
+        WHERE fd_id =(
+        SELECT DISTINCT(fd_propertyValueId) FROM me_media_ref_category WHERE fd_mediaId=#{_parameter} AND fd_property='年代' limit 1
+        )
+    </select>
+    <!--搜索引擎-->
+    <select id="selectByPkgType" resultMap="categoryPropertyValueResultMap">
+        select
+            *
+        from
+            me_category_property_value
+        where
+            fd_propertyId in (
+                select
+                    fd_id
+                from
+                    me_category_property
+                where
+                    fd_categoryId in (
+                        select
+                            fd_id
+                        from
+                            me_media_category
+                        where
+                            fd_name = #{pkgType}
+                    )
+            )
+    </select>
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.media.infra.ChannelProgramRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.media.domain.ChannelProgramVO" id="channelProgramResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_channelId" property="channelId"/>
+        <result column="fd_ssChannelId" property="ssChannelId"/>
+        <result column="fd_code" property="code"/>
+        <result column="fd_name" property="name"/>
+        <result column="fd_beginTime" property="beginTime"/>
+        <result column="fd_endTime" property="endTime"/>
+        <result column="fd_isRecommend" property="isRecommend"/>
+        <result column="fd_keyWord" property="keyWord"/>
+        <result column="fd_playCount" property="playCount"/>
+        <result column="fd_resolution" property="resolution"/>
+        <result column="fd_volumeName" property="volumeName"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+
+    <!-- 根据频道id获取该频道所有的节目单-->
+    <select id="getChannelProgram" resultMap="channelProgramResultMap">
+        SELECT
+        fd_id,fd_code,fd_ssChannelId,fd_name,fd_beginTime,fd_endTime,fd_createDate,fd_playCount
+        FROM ch_channel_program
+        where fd_channelId = #{channelId}
+        <if test=" 'today' == someDate ">
+            AND DATE_FORMAT(fd_beginTime,'%Y-%m-%d') = #{current}
+        </if>
+        <if test=" 'today' != someDate ">
+            AND DATE_FORMAT(fd_beginTime,'%Y-%m-%d') = #{someDate}
+        </if>
+        order by fd_createDate DESC
+    </select>
+
+    <select id="checkExist" resultType="integer">
+        select
+        count(1)
+        from
+        ch_channel_program
+        where
+        fd_channelId = #{channelId}
+        and fd_ssChannelId = #{ssChannelId}
+        and fd_beginTime = #{beginTime}
+        and fd_endTime = #{endTime}
+    </select>
+</mapper>

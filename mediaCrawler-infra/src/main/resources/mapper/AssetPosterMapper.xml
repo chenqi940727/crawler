@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.haokan.infra.AssetPosterRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.haokan.domain.AssetPoster" id="assetPosterResultMap">
+        <id column="id" property="id"/>
+        <result column="resourceCode" property="resourceCode"/>
+        <result column="fileName" property="fileName"/>
+        <result column="fileSize" property="fileSize"/>
+        <result column="height" property="height"/>
+        <result column="width" property="width"/>
+        <result column="localPath" property="localPath"/>
+        <result column="rank" property="rank"/>
+        <result column="status" property="status"/>
+        <result column="uploadTime" property="uploadTime"/>
+        <result column="terminalName" property="terminalName"/>
+    </resultMap>
+
+    <select id="selectPosters" resultMap="assetPosterResultMap">
+        select * from asset_poster
+        where resourceCode=#{_parameter}
+    </select>
+</mapper>

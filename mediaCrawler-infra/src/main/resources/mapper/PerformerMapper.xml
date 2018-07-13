@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.performer.infra.PerformerRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.performer.domain.Performer" id="performerResultMap">
+        <id column="fd_id" property="id"/>
+        <result column="fd_name" property="name"/>
+        <result column="fd_gender" property="gender"/>
+        <result column="fd_birth" property="birth"/>
+        <result column="fd_birthPlace" property="birthPlace"/>
+        <result column="fd_job" property="job"/>
+        <result column="fd_introduce" property="introduce"/>
+        <result column="fd_state" property="state"/>
+        <result column="fd_headerImg" property="headerImg"/>
+        <result column="fd_remark" property="remark"/>
+        <result column="fd_createDate" property="createDate"/>
+        <result column="fd_updateDate" property="updateDate"/>
+        <result column="fd_reserved1" property="reserved1"/>
+        <result column="fd_reserved2" property="reserved2"/>
+    </resultMap>
+
+    <select id="selectActorByName" parameterType="String" resultMap="performerResultMap">
+        select * from me_performer where fd_name = #{actorName}
+    </select>
+
+    <select id="selectActorCountByActorName" parameterType="string" resultType="integer">
+        select
+            fd_id
+        from
+            me_performer
+        where
+            fd_name = #{actorName}
+    </select>
+
+</mapper>

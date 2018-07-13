@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.haokan.infra.AssetRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.haokan.domain.Asset" id="assetResultMap">
+        <result column="resourceCode" property="resourceCode"/>
+        <result column="assetID" property="assetID"/>
+        <result column="assetName" property="assetName"/>
+        <result column="assetENName" property="assetENName"/>
+        <result column="assetTypeIds" property="assetTypeIds"/>
+        <result column="assetTypes" property="assetTypes"/>
+        <result column="captionName" property="captionName"/>
+        <result column="chapters" property="chapters"/>
+        <result column="createTime" property="createTime"/>
+        <result column="director" property="director"/>
+        <result column="issuerName" property="issuerName"/>
+        <result column="keyWord" property="keyWord"/>
+        <result column="leadingActor" property="leadingActor"/>
+        <result column="mlName" property="mlName"/>
+        <result column="originName" property="originName"/>
+        <result column="playCount" property="playCount"/>
+        <result column="publishDate" property="publishDate"/>
+        <result column="remark" property="remark"/>
+        <result column="score" property="score"/>
+        <result column="screenWriter" property="screenWriter"/>
+        <result column="searchCount" property="searchCount"/>
+        <result column="series" property="series"/>
+        <result column="status" property="status"/>
+        <result column="summaryLong" property="summaryLong"/>
+        <result column="summaryMedium" property="summaryMedium"/>
+        <result column="summaryShort" property="summaryShort"/>
+        <result column="type" property="type"/>
+        <result column="year" property="year"/>
+        <result column="playTime" property="playTime"/>
+        <result column="upnumber" property="upnumber"/>
+        <result column="paktype" property="paktype"/>
+        <result column="updateChapters" property="updateChapters"/>
+        <result column="providerID" property="providerID"/>
+    </resultMap>
+
+    <resultMap id="assetPosterResultMap" type="com.yunzhitx.mediacrawler.core.haokan.domain.Asset" extends="assetResultMap">
+        <collection property="assetPosterList" column="resourceCode"
+                    select="com.yunzhitx.newMedia.core.haokan.infra.AssetPosterRepository.selectPosters"/>
+    </resultMap>
+
+
+    <select id="selectAllTiYu" resultMap="assetPosterResultMap">
+        select * from asset where providerID="sccn" AND assetTypes like "%体育%"
+    </select>
+    <select id="selectAllYWYHK" resultMap="assetPosterResultMap">
+        select * from asset where providerID="sccn" AND assetTypes like "%越舞越好看%"
+    </select>
+    <select id="selectAllTV" resultMap="assetPosterResultMap">
+        select * from asset where providerID="sccn" AND assetName like concat( concat("%",#{videoName}),"%")
+    </select>
+
+</mapper>

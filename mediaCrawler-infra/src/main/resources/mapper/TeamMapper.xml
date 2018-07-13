@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunzhitx.mediacrawler.core.worldcup.infra.TeamRepository">
+    <resultMap type="com.yunzhitx.mediacrawler.core.worldcup.domain.Team" id="teamResultMap">
+          <id column="fd_id" property="id" />
+          <result column="teamName" property="teamName" />
+          <result column="teamCountry" property="teamCountry" />
+          <result column="teamGroup" property="teamGroup" />
+          <result column="flagUrl" property="flagUrl" />
+        <result column="fd_createDate" property="createDate" />
+        <result column="fd_updateDate" property="updateDate" />
+        <result column="groupRank" property="groupRank" />
+    </resultMap>
+
+
+    <select id="getTeamByCountryName" parameterType="string" resultMap="teamResultMap">
+        select
+            *
+        from
+            wc_team
+        where
+            teamCountry = #{countryName}
+    </select>
+
+</mapper>

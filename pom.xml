@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.yunzhitx.mediacrawler</groupId>
+    <artifactId>mediacrawler</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>mediacrawler-rest</module>
+        <module>mediacrawler-application</module>
+        <module>mediacrawler-infra</module>
+        <module>mediacrawler-domain</module>
+    </modules>
+
+    <properties>
+        <!-- BASE -->
+        <version.common.componment>1.0-SNAPSHOT</version.common.componment>
+        <version.inject>1</version.inject>
+        <version.persistence.api>1.0</version.persistence.api>
+        <version.lombok>1.16.14</version.lombok>
+        <!-- SPRING -->
+        <version.springframework.boot>1.5.3.RELEASE</version.springframework.boot>
+        <version.springframework>4.3.8.RELEASE</version.springframework>
+        <!-- DATABASE -->
+        <version.pagehepler>5.0.1</version.pagehepler>
+        <version.mapper>3.4.0</version.mapper>
+        <version.datasource.durid>1.0.26</version.datasource.durid>
+        <version.springboot.mybatis>1.1.1</version.springboot.mybatis>
+        <version.springboot.mybatis.mapper>1.1.1</version.springboot.mybatis.mapper>
+        <version.springboot.mybatis.pagehelper>1.1.1</version.springboot.mybatis.pagehelper>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${version.springframework.boot}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- base -->
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>${version.inject}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>persistence-api</artifactId>
+                <version>${version.persistence.api}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${version.lombok}</version>
+            </dependency>
+            <!-- DataSource-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${version.datasource.durid}</version>
+            </dependency>
+            <!--mybatis-->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${version.springboot.mybatis}</version>
+            </dependency>
+            <!--mybatis-mapper-->
+            <dependency>
+                <groupId>tk.mybatis</groupId>
+                <artifactId>mapper-spring-boot-starter</artifactId>
+                <version>${version.springboot.mybatis.mapper}</version>
+            </dependency>
+            <!--mybatis-pagehelper-->
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>${version.springboot.mybatis.pagehelper}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper</artifactId>
+                <version>${version.pagehepler}</version>
+            </dependency>
+            <dependency>
+                <groupId>tk.mybatis</groupId>
+                <artifactId>mapper</artifactId>
+                <version>${version.mapper}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-amqp</artifactId>
+                <version>${version.springframework.boot}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+
+</project>
