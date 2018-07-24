@@ -1,6 +1,5 @@
 package com.yunzhitx.mediacrawler.web.rest.test;
 
-import com.alibaba.fastjson.JSON;
 import com.yunzhitx.cloud.common.model.InvokeResult;
 import com.yunzhitx.mediacrawler.core.media.domain.Media;
 import com.yunzhitx.mediacrawler.core.mediarefcategory.domain.MediaRefCategory;
@@ -8,13 +7,17 @@ import com.yunzhitx.mediacrawler.core.mediarefcategory.infra.MediaRefCategoryRep
 import com.yunzhitx.mediacrawler.core.poster.domain.Poster;
 import com.yunzhitx.mediacrawler.core.resource.domain.Resource;
 import com.yunzhitx.mediacrawler.web.rest.IQYService.IQYUtils;
+import com.yunzhitx.mediacrawler.web.rest.IQYService.TXUtils;
+import com.yunzhitx.mediacrawler.web.rest.elasticsearch.EsController;
+import com.yunzhitx.mediacrawler.web.rest.iqiyicrawler.IQYAnimeCrawler;
 import com.yunzhitx.mediacrawler.web.rest.iqiyicrawler.IQYTVCrawler;
-import com.yunzhitx.mediacrawler.web.rest.mediaInfo.IQYTVCrawlerCustomer;
-import com.yunzhitx.mediacrawler.web.rest.mediaInfo.MeidiaCustomer;
+import com.yunzhitx.mediacrawler.web.rest.mediaInfo.*;
 import com.yunzhitx.mediacrawler.web.rest.redis.BaseRedisDao;
+import com.yunzhitx.mediacrawler.web.rest.txcrawler.TxAnimeCrawler;
+import com.yunzhitx.mediacrawler.web.rest.txcrawler.TxFilmCrawler;
 import com.yunzhitx.mediacrawler.web.rest.txcrawler.TxTVCrawler;
+import com.yunzhitx.mediacrawler.web.rest.txcrawler.TxVarietyCrawler;
 import com.yunzhitx.mediacrawler.web.rest.worldcupcrawler.BallKingCrawler;
-import com.yunzhitx.mediacrawler.web.rest.worldcupcrawler.CCTVWorldCupCrawler;
 import com.yunzhitx.mediacrawler.web.rest.worldcupcrawler.YoukuLookBackCrawler;
 import com.yunzhitx.mediacrawler.web.util.RedisKey;
 import com.yunzhitx.mediacrawler.web.util.SFTPUtil;
@@ -22,18 +25,14 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 /**
@@ -55,7 +54,7 @@ public class Test {
 
     @RequestMapping("startMediaThread")
     public void startMediaThread(){
-        MeidiaCustomer meidiaCustomer = new MeidiaCustomer();
+        IqyFilmCustomer meidiaCustomer = new IqyFilmCustomer();
         Thread meidiaCustomerThred = new Thread(meidiaCustomer);
         meidiaCustomerThred.start();
     }
@@ -200,12 +199,12 @@ public class Test {
         crawler2.setMaxExecuteCount(3);
         crawler2.start(1);
 //        for(int i=0; i < 10; i++){
-        IQYTVCrawlerCustomer iqytvCrawlerCustomer = new IQYTVCrawlerCustomer();
+        IqyTVCrawlerCustomer iqytvCrawlerCustomer = new IqyTVCrawlerCustomer();
         Thread iqytvCrawlerCustomerThred = new Thread(iqytvCrawlerCustomer);
         iqytvCrawlerCustomerThred.start();
 //        }
         InvokeResult result = new InvokeResult();
-        result.setData(redisDao.getList(RedisKey.TV_ALBUMID_LIST));
+        result.setData(redisDao.getList(RedisKey.IQY_TV_ALBUMID_LIST));
         return result;
     }
 
@@ -218,23 +217,23 @@ public class Test {
     @RequestMapping("getFailedAlbumName")
     public InvokeResult getFailedAlbumName(){
         List<Map> list = new ArrayList<Map>();
-        Map<String, Object> failedMap = redisDao.getMap(RedisKey.DEAL_FAILED);
-
-
-        for(String key : failedMap.keySet()){
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("ablumId", key);
-            map.put("name", redisDao.getMapField(RedisKey.TV_ALBUMID_NAME, key));
-            list.add(map);
-        }
+//        Map<String, Object> failedMap = redisDao.getMap(RedisKey.DEAL_FAILED);
+//
+//
+//        for(String key : failedMap.keySet()){
+//            Map<String, Object> map = new HashMap<String, Object>();
+//            map.put("ablumId", key);
+//            map.put("name", redisDao.getMapField(RedisKey.IQY_TV_ALBUMID_NAME, key));
+//            list.add(map);
+//        }
         return InvokeResult.ok(list);
     }
 
     @RequestMapping("txtvtest")
     public InvokeResult txTvTest() throws Exception {
-        Integer length = 3;
+        Integer length = 1;
         TxTVCrawler crawler = new TxTVCrawler("txTvCrawler", true,redisDao);
-        for (int i = 1; i <= length; i++) {
+        for (int i = 0; i <= length; i++) {
             crawler.addSeed("http://v.qq.com/x/list/tv?sort=19&offset=" + i * 30);
             crawler.addSeed("http://v.qq.com/x/list/tv?sort=18&offset=" + i * 30);
         }
@@ -242,13 +241,161 @@ public class Test {
         crawler.setMaxExecuteCount(3);
         crawler.start(1);
 //        for(int i=0; i < 10; i++){
-//        IQYTVCrawlerCustomer iqytvCrawlerCustomer = new IQYTVCrawlerCustomer();
-//        Thread iqytvCrawlerCustomerThred = new Thread(iqytvCrawlerCustomer);
-//        iqytvCrawlerCustomerThred.start();
+        TxTvCustomer txTvCustomer = new TxTvCustomer();
+        Thread txTvCustomerThred = new Thread(txTvCustomer);
+        txTvCustomerThred.start();
 //        }
         InvokeResult result = new InvokeResult();
-        result.setData(redisDao.getMap(RedisKey.TV_TXID_NAME));
+//        result.setData(redisDao.getMap(RedisKey.TV_TXID_NAME));
         return result;
     }
+
+    @RequestMapping("txfilmtest")
+    public InvokeResult txFilmTest() throws Exception {
+        Integer length = 0;
+        TxFilmCrawler crawler = new TxFilmCrawler("txFilmCrawler", true,redisDao);
+        for (int i = 0; i <= length; i++) {
+            crawler.addSeed("http://v.qq.com/x/list/movie?sort=19&offset=" + i * 30);
+            crawler.addSeed("http://v.qq.com/x/list/movie?sort=18&offset=" + i * 30);
+        }
+        crawler.getConf().setTopN(300);
+        crawler.setMaxExecuteCount(3);
+        crawler.start(1);
+//        for(int i=0; i < 10; i++){
+        TxFilmCustomer txFilmCustomer = new TxFilmCustomer();
+        Thread txFilmCustomerThred = new Thread(txFilmCustomer);
+        txFilmCustomerThred.start();
+//        }
+        InvokeResult result = new InvokeResult();
+//        result.setData(redisDao.getMap(RedisKey.FILM_TXID_NAME));
+        return result;
+    }
+
+    @RequestMapping("txanimetest")
+    public InvokeResult txAnimeTest() throws Exception {
+        Integer length = 1;
+        TxAnimeCrawler crawler = new TxAnimeCrawler("txAnimeCrawler", true,redisDao);
+        for (int i = 0; i <= length; i++) {
+            crawler.addSeed("http://v.qq.com/x/list/cartoon?sort=18&offset=" + i * 30);
+            crawler.addSeed("http://v.qq.com/x/list/cartoon?sort=19&offset=" + i * 30);
+        }
+        crawler.getConf().setTopN(300);
+        crawler.setMaxExecuteCount(3);
+        crawler.start(1);
+//        for(int i=0; i < 10; i++){
+        TxAnimeCustomer txAnimeCustomer = new TxAnimeCustomer();
+        Thread txAnimeCustomerThred = new Thread(txAnimeCustomer);
+        txAnimeCustomerThred.start();
+//        }
+        InvokeResult result = new InvokeResult();
+//        result.setData(redisDao.getMap(RedisKey.TV_TXID_NAME));
+        return result;
+    }
+
+    @RequestMapping("txvarietytest")
+    public InvokeResult txVarietyTest() throws Exception {
+        Integer length = 1;
+        TxVarietyCrawler crawler = new TxVarietyCrawler("txVarietyCrawler", true,redisDao);
+        for (int i = 0; i <= length; i++) {
+            crawler.addSeed("http://v.qq.com/x/list/variety?sort=4&offset=" + i * 30);
+            crawler.addSeed("http://v.qq.com/x/list/variety?sort=5&offset=" + i * 30);
+        }
+        crawler.addRegex("https://v.qq.com/x/cover/[0-9A-Za-z]{15}.html");
+        crawler.getConf().setTopN(300);
+        crawler.setMaxExecuteCount(3);
+        crawler.start(2);
+        TxVarietyCustomer txVarietyCustomer = new TxVarietyCustomer();
+        Thread txVarietyCustomerThred = new Thread(txVarietyCustomer);
+        txVarietyCustomerThred.start();
+        InvokeResult result = new InvokeResult();
+//        result.setData(redisDao.getMap(RedisKey.TV_TXID_NAME));
+        return result;
+    }
+
+    @RequestMapping("txvarietyTest")
+    public InvokeResult txvarietyTest(String tvId) throws Exception {
+//        TXUtils.addVarietyMedia(tvId, restTemplate);
+        SimpleDateFormat sdf = new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss ");
+        Media packageMedia = Media.getMediaRepository().selectByPrimaryKey(874795);
+        packageMedia.setUpdateDate(sdf.format(new Date()));
+        packageMedia.setSerial(20160708);
+        Media.getMediaRepository().updateByPrimaryKeySelective(packageMedia);
+
+        /**
+         * 修改搜索引擎中的信息
+         */
+        Integer id = packageMedia.getId();
+        Media media2 = Media.getMediaRepository().getMediaDetail(id);
+        EsController.addEsDate(media2);
+        return InvokeResult.ok();
+    }
+
+    @RequestMapping("startTxTvCrawl")
+    public InvokeResult startTxTvCrawl(String txTvId){
+        redisDao.addList(RedisKey.TX_TV_ALBUMID_LIST, txTvId);
+        TxTvCustomer txTvCustomer = new TxTvCustomer();
+        Thread txTvCustomerThred = new Thread(txTvCustomer);
+        txTvCustomerThred.start();
+        return InvokeResult.ok();
+    }
+
+    @RequestMapping("iqyanimeTest")
+    public InvokeResult iqyanimeTest() throws Exception {
+        Integer length = 3;
+        IQYAnimeCrawler crawler = new IQYAnimeCrawler("iqyAnimeCrawler", true,redisDao);
+        for (int i = 1; i <= length; i++) {
+            crawler.addSeed("http://list.iqiyi.com/www/4/-------------4-"+ i +"-1-iqiyi--.html");
+            crawler.addSeed("http://list.iqiyi.com/www/4/-------------11-"+ i +"-1-iqiyi--.html");
+        }
+        crawler.getConf().setTopN(300);
+        crawler.setMaxExecuteCount(3);
+        crawler.start(1);
+//        for(int i=0; i < 10; i++){
+        IqyAnimeCustomer iqyAnimeCustomer = new IqyAnimeCustomer();
+        Thread iqyAnimeCustomerThred = new Thread(iqyAnimeCustomer);
+        iqyAnimeCustomerThred.start();
+        return InvokeResult.ok();
+    }
+
+    @RequestMapping("iqyAnimeTest")
+    public InvokeResult iqyAnimeTest(String albumId) throws Exception {
+        IQYUtils.addAnimeMedia(albumId, restTemplate);
+        return InvokeResult.ok();
+    }
+
+    @RequestMapping("fixVarietyMedia")
+    public InvokeResult fixVarietyMedia() throws Exception {
+        Integer length = 60;
+        TxVarietyCrawler crawler = new TxVarietyCrawler("txVarietyCrawler", true,redisDao);
+        for (int i = 0; i <= length; i++) {
+            crawler.addSeed("http://v.qq.com/x/list/variety?sort=4&offset=" + i * 30);
+            crawler.addSeed("http://v.qq.com/x/list/variety?sort=5&offset=" + i * 30);
+        }
+        crawler.addRegex("https://v.qq.com/x/cover/[0-9A-Za-z]{15}.html");
+        crawler.getConf().setTopN(300);
+        crawler.setMaxExecuteCount(3);
+        crawler.start(2);
+
+        Boolean flag = true;
+        while(flag){
+            if(redisDao.exists(RedisKey.TX_VARIETY_ALBUMID_LIST) && redisDao.getListSize(RedisKey.TX_VARIETY_ALBUMID_LIST) > 0){
+                Long startTime = System.currentTimeMillis();
+                String tvId = (String) redisDao.lPop(RedisKey.TX_VARIETY_ALBUMID_LIST);
+                try {
+                    TXUtils.fixVarietyMedia(tvId, restTemplate);
+//                    Long endTime = System.currentTimeMillis();
+//                    redisDao.addMap(RedisKey.DEAL_RESULT, tvId, "success, hs: " + (endTime-startTime));
+                } catch (Exception e) {
+//                    Long endTime = System.currentTimeMillis();
+//                    redisDao.addMap(RedisKey.DEAL_RESULT, tvId, "failed, hs: " + (endTime-startTime));
+                    e.printStackTrace();
+                }
+            }else{
+                flag = false;
+            }
+        }
+        return InvokeResult.ok();
+    }
+
 
 }

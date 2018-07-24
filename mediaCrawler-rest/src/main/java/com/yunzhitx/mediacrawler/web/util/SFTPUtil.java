@@ -40,19 +40,10 @@ public class SFTPUtil {
     /** SFTP 端口*/
     private int port;
 
-    private static volatile SFTPUtil instance;
 
     public static SFTPUtil getInstance(){
-        if(instance == null){
-            synchronized (SFTPUtil.class){
-                if(instance == null){
-//                    instance = new SFTPUtil("root", "TzDFVbq%@20180323Zm", "60.255.156.98", 22);
-                    instance = new SFTPUtil("root", "chenqi", "192.168.124.129", 22);
-                    instance.login();
-                }
-            }
-        }
-        return instance;
+//        return new SFTPUtil("root", "TzDFVbq%@20180323Zm", "60.255.156.98", 22);
+        return new SFTPUtil("root", "chenqi", "192.168.124.129", 22);
     }
 
 

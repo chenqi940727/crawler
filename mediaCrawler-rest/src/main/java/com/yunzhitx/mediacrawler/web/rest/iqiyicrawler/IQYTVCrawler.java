@@ -52,8 +52,8 @@ public class IQYTVCrawler extends BreadthCrawler{
             String filmAlbumId = ele.attr("data-qidanadd-albumid");
             String filmName = ele.attr("alt");
             if(!StringUtils.isEmpty(filmAlbumId)){
-                redisDao.addList(RedisKey.TV_ALBUMID_LIST, filmAlbumId);
-                redisDao.addMap(RedisKey.TV_ALBUMID_NAME, filmAlbumId, filmName + " - " + page.url());
+                redisDao.addList(RedisKey.IQY_TV_ALBUMID_LIST, filmAlbumId);
+                redisDao.addMap(RedisKey.ID_TO_NAME, filmAlbumId, filmName + " - " + page.url());
             }
         }
     }

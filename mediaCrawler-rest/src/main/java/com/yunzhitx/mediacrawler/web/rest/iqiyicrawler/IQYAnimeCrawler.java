@@ -1,4 +1,4 @@
-package com.yunzhitx.mediacrawler.web.rest.txcrawler;
+package com.yunzhitx.mediacrawler.web.rest.iqiyicrawler;
 
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
@@ -17,13 +17,13 @@ import org.springframework.util.StringUtils;
  * @Description: TODO
  * @date 2018/5/30$ 15:43$
  */
-public class TxTVCrawler extends BreadthCrawler{
+public class IQYAnimeCrawler extends BreadthCrawler{
 
     private static volatile Integer count = 0;
 
-    private Integer sourceType = SourceType.TYPE_TENXUN.getIndex(); //爱奇艺视频id
-    private static final String fieldName = SourceType.TYPE_TENXUN.getName();
-    private static final String pkgType = MediaType.TYPE_TV.getName();
+    private Integer sourceType = SourceType.TYPE_IQIYI.getIndex(); //爱奇艺视频id
+    private static final String fieldName = SourceType.TYPE_IQIYI.getName();
+    private static final String animepkgType = MediaType.TYPE_ANIMATION.getName();
     private static final String IMGURL = "http://juhe.fs.cdtown.cn/media/";
     private static final String tenantFlag = "yztx";
 
@@ -36,7 +36,7 @@ public class TxTVCrawler extends BreadthCrawler{
      * @param autoParse 是否根据设置的正则自动探测新URL
      * @param redisDao
      */
-    public TxTVCrawler(String crawlPath, boolean autoParse, BaseRedisDao redisDao) {
+    public IQYAnimeCrawler(String crawlPath, boolean autoParse, BaseRedisDao redisDao) {
         super(crawlPath, autoParse);
         this.redisDao = redisDao;
     }
@@ -45,16 +45,16 @@ public class TxTVCrawler extends BreadthCrawler{
 
     @Override
     public void visit(Page page, CrawlDatums next) {
-        Element ul = page.select("ul.figures_list").get(0);
-        Elements tvList = ul.select("li");
-        for(Element tv : tvList){
-            Element a = tv.select("a.figure").first();
-            String txTvId = a.attr("data-float");
-            Element img = a.select("img").first();
-            String name = img.attr("alt");
-
-            redisDao.addList(RedisKey.TX_TV_ALBUMID_LIST, txTvId);
-            redisDao.addMap(RedisKey.ID_TO_NAME, txTvId, name + " - " + page.url());
+        Element ul = page.select("div[class=wrapper-piclist] ul").get(0);
+        Elements filmList = ul.select("li");
+        for(Element film : filmList){
+            Element ele = film.select("div[class=site-piclist_pic] a").get(0);
+            String filmAlbumId = ele.attr("data-qidanadd-albumid");
+            String filmName = ele.attr("alt");
+            if(!StringUtils.isEmpty(filmAlbumId)){
+                redisDao.addList(RedisKey.IQY_ANIME_ALBUMID_LIST, filmAlbumId);
+                redisDao.addMap(RedisKey.ID_TO_NAME, filmAlbumId, filmName + " - " + page.url());
+            }
         }
     }
 

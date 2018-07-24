@@ -19,6 +19,7 @@ public class DownloadImage {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         Date now = new Date();
         SFTPUtil sftp = SFTPUtil.getInstance();
+        sftp.login();
         String filename = UUID.randomUUID().toString().substring(0, 8) + now.getTime() + (int) (Math.random() * 1000) + ".jpg";
 //        URL url = new URL(null,urlString,new sun.net.www.protocol.https.Handler());//重点在这里，需要使用带有URLStreamHandler参数的URL构造方法
 //        javax.net.ssl.HttpsURLConnection httpConnection = (javax.net.ssl.HttpsURLConnection) url.openConnection();//由于我调用的是官方给微信API接口，所以采用HTTPS连接
@@ -39,6 +40,9 @@ public class DownloadImage {
         }finally{
             if(is != null){
                 is.close();
+            }
+            if(sftp != null){
+                sftp.logout();
             }
         }
 //        byte[] bs = new byte[1024];

@@ -23,8 +23,8 @@ public class RedisTest {
     @RequestMapping("test")
     public InvokeResult redisTest(){
         InvokeResult invokeResult = new InvokeResult();
-        redisDao.addList(RedisKey.FILM_ALBUMID_LIST,"zzzzzzz");
-        invokeResult.setData(redisDao.getList(RedisKey.FILM_ALBUMID_LIST));
+//        redisDao.addList(RedisKey.FILM_ALBUMID_LIST,"zzzzzzz");
+//        invokeResult.setData(redisDao.getList(RedisKey.FILM_ALBUMID_LIST));
         return invokeResult;
     }
 }

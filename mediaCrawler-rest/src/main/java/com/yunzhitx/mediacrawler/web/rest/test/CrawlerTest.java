@@ -7,9 +7,8 @@ import com.yunzhitx.mediacrawler.web.rest.worldcupcrawler.BallKingCrawler;
 import com.yunzhitx.mediacrawler.web.rest.worldcupcrawler.CCTVWorldCupCrawler;
 import com.yunzhitx.mediacrawler.web.rest.elasticsearch.EsController;
 import com.yunzhitx.mediacrawler.web.rest.iqiyicrawler.IQYFilmTestCrawler;
-import com.yunzhitx.mediacrawler.web.rest.mediaInfo.MeidiaCustomer;
+import com.yunzhitx.mediacrawler.web.rest.mediaInfo.IqyFilmCustomer;
 import com.yunzhitx.mediacrawler.web.rest.redis.BaseRedisDao;
-import com.yunzhitx.mediacrawler.web.rest.worldcupcrawler.TxCrawler;
 import com.yunzhitx.mediacrawler.web.rest.worldcupcrawler.TxCrawler2;
 import com.yunzhitx.mediacrawler.web.util.RedisKey;
 import com.yunzhitx.mediacrawler.web.util.SFTPUtil;
@@ -49,12 +48,12 @@ public class CrawlerTest {
         crawler2.setMaxExecuteCount(3);
         crawler2.start(1);
 //        for(int i=0; i < 10; i++){
-            MeidiaCustomer meidiaCustomer = new MeidiaCustomer();
+            IqyFilmCustomer meidiaCustomer = new IqyFilmCustomer();
             Thread meidiaCustomerThred = new Thread(meidiaCustomer);
             meidiaCustomerThred.start();
 //        }
         InvokeResult result = new InvokeResult();
-        result.setData(redisDao.getList(RedisKey.FILM_ALBUMID_LIST));
+//        result.setData(redisDao.getList(RedisKey.FILM_ALBUMID_LIST));
         return result;
     }
 
@@ -91,25 +90,25 @@ public class CrawlerTest {
             }
             Map<String, Object>mediaMap = mediaMapList.get(0);
             String poster = (String) mediaMap.get("posters");
-            redisDao.addMap(RedisKey.MEDIA_ES, mediaId.toString(), poster);
+//            redisDao.addMap(RedisKey.MEDIA_ES, mediaId.toString(), poster);
         }
         return InvokeResult.ok();
     }
 
     @RequestMapping("recoverLargeImg")
     public InvokeResult recoverLargeImg() throws IOException {
-        Map<String, Object> map = redisDao.getMap(RedisKey.MEDIA_ES);
-        Poster mediaPoster = new Poster();
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String value = entry.getValue().toString();
-            List<Map> posterList = (List<Map>) JSONUtils.parse(value);
-            Map poster = posterList.get(0);
-            String large = (String) poster.get("large");
-            if(StringUtil.isNotEmpty(large)){
-                Integer mediaId = Integer.valueOf(entry.getKey());
-                mediaPoster.updateLargeByMediaId(mediaId, large);
-            }
-        }
+//        Map<String, Object> map = redisDao.getMap(RedisKey.MEDIA_ES);
+//        Poster mediaPoster = new Poster();
+//        for (Map.Entry<String, Object> entry : map.entrySet()) {
+//            String value = entry.getValue().toString();
+//            List<Map> posterList = (List<Map>) JSONUtils.parse(value);
+//            Map poster = posterList.get(0);
+//            String large = (String) poster.get("large");
+//            if(StringUtil.isNotEmpty(large)){
+//                Integer mediaId = Integer.valueOf(entry.getKey());
+//                mediaPoster.updateLargeByMediaId(mediaId, large);
+//            }
+//        }
         return InvokeResult.ok();
     }
 

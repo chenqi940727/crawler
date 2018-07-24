@@ -20,7 +20,7 @@ import static java.lang.Thread.sleep;
  * @Description: TODO
  * @date 2018/5/31$ 17:53$
  */
-public class MeidiaCustomer implements Runnable {
+public class IqyFilmCustomer implements Runnable {
 
     private volatile BaseRedisDao redisDao;
 
@@ -32,23 +32,23 @@ public class MeidiaCustomer implements Runnable {
         this.redisDao = BeanContext.getApplicationContext().getBean(BaseRedisDao.class);
         Boolean flag = true;
         while(flag){
-            if(redisDao.exists(RedisKey.FILM_ALBUMID_LIST) && redisDao.getListSize(RedisKey.FILM_ALBUMID_LIST) > 0){
+            if(redisDao.exists(RedisKey.IQY_FILM_ALBUMID_LIST) && redisDao.getListSize(RedisKey.IQY_FILM_ALBUMID_LIST) > 0){
                 Long startTime = System.currentTimeMillis();
-                Object albumId = redisDao.lPop(RedisKey.FILM_ALBUMID_LIST);
-                Map param = new HashMap();
-                param.put("albumId", albumId);
-                String response = restTemplate.getForObject("http://mixer.video.iqiyi.com/jp/mixin/videos/{albumId}?select=cast", String.class,param);
-                Long middleTime = System.currentTimeMillis();
-                String infoMapString = response.split("tvInfoJs=")[1];
-                Map infoMap = JSON.parseObject(infoMapString);
+                Long middleTime = startTime;
+                Object albumId = redisDao.lPop(RedisKey.IQY_FILM_ALBUMID_LIST);
                 try {
-                    IQYUtils.addMedia(infoMap);
+                    Map param = new HashMap();
+                    param.put("albumId", albumId);
+                    String response = restTemplate.getForObject("http://mixer.video.iqiyi.com/jp/mixin/videos/{albumId}?select=cast", String.class,param);
+                    middleTime = System.currentTimeMillis();
+                    String infoMapString = response.split("tvInfoJs=")[1];
+                    Map infoMap = JSON.parseObject(infoMapString);
+                    IQYUtils.addFilmMedia(infoMap);
                     Long endTime = System.currentTimeMillis();
                     redisDao.addMap(RedisKey.DEAL_RESULT, albumId, "success, hs: " + (endTime-startTime) + ", mhs: " + (endTime-middleTime));
                 } catch (Exception e) {
                     Long endTime = System.currentTimeMillis();
                     redisDao.addMap(RedisKey.DEAL_RESULT, albumId, "failed, hs: " + (endTime-startTime) + ", mhs: " + (endTime-middleTime));
-                    redisDao.addMap(RedisKey.DEAL_FAILED, albumId, "failed");
                     e.printStackTrace();
                 }
             }else{

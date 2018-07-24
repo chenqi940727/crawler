@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
  * @modificationHistory: who  when  what
  * ---------     -------------   --------------------------------------
  **/
-public class TxTvCustomer implements Runnable{
+public class TxVarietyCustomer implements Runnable{
 
 
     private volatile BaseRedisDao redisDao;
@@ -26,11 +26,11 @@ public class TxTvCustomer implements Runnable{
         this.redisDao = BeanContext.getApplicationContext().getBean(BaseRedisDao.class);
         Boolean flag = true;
         while(flag){
-            if(redisDao.exists(RedisKey.TX_TV_ALBUMID_LIST) && redisDao.getListSize(RedisKey.TX_TV_ALBUMID_LIST) > 0){
+            if(redisDao.exists(RedisKey.TX_VARIETY_ALBUMID_LIST) && redisDao.getListSize(RedisKey.TX_VARIETY_ALBUMID_LIST) > 0){
                 Long startTime = System.currentTimeMillis();
-                String tvId = (String) redisDao.lPop(RedisKey.TX_TV_ALBUMID_LIST);
+                String tvId = (String) redisDao.lPop(RedisKey.TX_VARIETY_ALBUMID_LIST);
                 try {
-                    TXUtils.addTVMedia(tvId, restTemplate);
+                    TXUtils.addVarietyMedia(tvId, restTemplate);
                     Long endTime = System.currentTimeMillis();
                     redisDao.addMap(RedisKey.DEAL_RESULT, tvId, "success, hs: " + (endTime-startTime));
                 } catch (Exception e) {

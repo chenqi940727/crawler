@@ -50,14 +50,15 @@ public class IQYUtils {
 
     private static Integer sourceType = SourceType.TYPE_IQIYI.getIndex(); //爱奇艺视频id
     private static final String fieldName = SourceType.TYPE_IQIYI.getName();
-    private static final String pkgType = MediaType.TYPE_FILM.getName();
+    private static final String filmpkgType = MediaType.TYPE_FILM.getName();
     private static final String tvpkgType = MediaType.TYPE_TV.getName();
+    private static final String animepkgType = MediaType.TYPE_ANIMATION.getName();
     private static final String IMGURL = "http://juhe.fs.cdtown.cn/media/";
     private static final String tenantFlag = "yztx";
     private static final Pattern itemPattern = Pattern.compile("(?<=v_)(.+?)(?=.html)");
 
 
-    public static void addMedia(Map<String, Object> infoMap) throws Exception {
+    public static void addFilmMedia(Map<String, Object> infoMap) throws Exception {
         if(infoMap == null){
             return;
         }
@@ -69,7 +70,7 @@ public class IQYUtils {
         Long startTime = System.currentTimeMillis();
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("fd_name",mediaName);
-        params.put("fd_pkgType",pkgType);
+        params.put("fd_pkgType",filmpkgType);
         params.put("fd_type", MediaPackageType.TYPE_PACKAGES.getIndex());
         Integer packageMediaId = mediaRepository.selectMediaIdIfMediaPackageExsit(params);
         if(packageMediaId != null){
@@ -116,7 +117,7 @@ public class IQYUtils {
         String intro = (String) infoMap.get("description");
         Media media = new Media();
         media.setName(mediaName);
-        media.setPkgType(pkgType);
+        media.setPkgType(filmpkgType);
         media.setTerminal("pc+app");
         media.setStarring(actors);
         media.setDirector(directors);
@@ -133,34 +134,92 @@ public class IQYUtils {
         media.setPlayCount(0L);
         if(packageMediaId == null){
             media.setParentId(0);
+            media.setUpdateDate(sdf.format(now));
             media.setType(MediaPackageType.TYPE_PACKAGES.getIndex());
             media.save();
             packageMediaId = media.getId();
+
+            //save poster
+            Poster poster = new Poster();
+            String posterSrc = (String) infoMap.get("imageUrl");
+            posterSrc = DownloadImage.download(posterSrc);//下载媒资包图片
+
+            poster.setMediaId(packageMediaId);
+            poster.setType("title");
+            poster.setTitle(mediaName);
+            poster.setMiddle(IMGURL + posterSrc);
+            poster.setCreateDate(sdf.format(now));
+            poster.save();
+
+            //save category
+            List<Map> categorysList = (List<Map>) infoMap.get("categories");
+            MediaRefCategory mediaRefCategory = new MediaRefCategory();
+            MediaCategory mediaCategory = MediaCategory.getMediaCategoryRepository().selectCategoryByType(filmpkgType);
+            if(categorysList.size() > 0){
+                CategoryProperty categoryProperty = CategoryProperty.getCategoryPropertyRepository().selectTypeByCategoryId(mediaCategory.getId());
+                CategoryProperty categoryAreaProperty = CategoryProperty.getCategoryPropertyRepository().selectAreaByCategoryId(mediaCategory.getId());
+                for(Map category : categorysList){
+                    params.clear();
+                    String categoryName = (String) category.get("name");
+                    params.put("id", categoryProperty.getId());
+                    params.put("params", categoryName);
+                    CategoryPropertyValue categoryPropertyValue = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
+                    if (null != categoryPropertyValue) {
+                        mediaRefCategory.setMediaId(packageMediaId);
+                        mediaRefCategory.setCategoryId(mediaCategory.getId());
+                        mediaRefCategory.setPropertyId(categoryProperty.getId());
+                        mediaRefCategory.setProperty(categoryProperty.getName());
+                        mediaRefCategory.setPropertyValueId(categoryPropertyValue.getId());
+                        mediaRefCategory.save();
+                    }
+                    params.put("id", categoryAreaProperty.getId());
+                    CategoryPropertyValue categoryAreaPropertyValue = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
+                    if (null != categoryAreaPropertyValue) {
+                        mediaRefCategory.setMediaId(packageMediaId);
+                        mediaRefCategory.setCategoryId(mediaCategory.getId());
+                        mediaRefCategory.setPropertyId(categoryAreaProperty.getId());
+                        mediaRefCategory.setProperty(categoryAreaProperty.getName());
+                        mediaRefCategory.setPropertyValueId(categoryAreaPropertyValue.getId());
+                        mediaRefCategory.save();
+                    }
+
+                }
+            }
+            if(year != null){
+                CategoryProperty yearCategoryProperty = CategoryProperty.getCategoryPropertyRepository().selectYearByCategoryId(mediaCategory.getId());
+                mediaRefCategory.setMediaId(packageMediaId);
+                mediaRefCategory.setCategoryId(mediaCategory.getId());
+                mediaRefCategory.setPropertyId(yearCategoryProperty.getId());
+                mediaRefCategory.setProperty(yearCategoryProperty.getName());
+                params.clear();
+                params.put("id", yearCategoryProperty.getId());
+                params.put("params", year);
+                CategoryPropertyValue categoryPropertyValue1 = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
+                if(categoryPropertyValue1 == null){
+                    params.clear();
+                    params.put("id", yearCategoryProperty.getId());
+                    params.put("params", "更早");
+                    categoryPropertyValue1 = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
+                    mediaRefCategory.setPropertyValueId(categoryPropertyValue1.getId());
+                }else{
+                    mediaRefCategory.setPropertyValueId(categoryPropertyValue1.getId());
+                }
+                mediaRefCategory.save();
+            }
+
+            //save actors
+            for(Map director : directorsMaps){
+                addActorInfo(director, "director", packageMediaId);
+            }
+            for(Map actor : actorsMaps){
+                addActorInfo(actor, "actor", packageMediaId);
+            }
         }
         media.setId(null);
         media.setType(MediaPackageType.TYPE_MEDIA.getIndex());
         media.setParentId(packageMediaId);
         media.save();
 
-        //save poster
-        Poster poster = new Poster();
-        String posterSrc = (String) infoMap.get("imageUrl");
-        posterSrc = DownloadImage.download(posterSrc);//下载媒资包图片
-
-        poster.setMediaId(packageMediaId);
-        poster.setType("title");
-        poster.setTitle(mediaName);
-        poster.setMiddle(IMGURL + posterSrc);
-        poster.setCreateDate(sdf.format(now));
-        poster.save();
-
-        //save actors
-        for(Map director : directorsMaps){
-            addActorInfo(director, "director", packageMediaId);
-        }
-        for(Map actor : actorsMaps){
-            addActorInfo(actor, "actor", packageMediaId);
-        }
         //save resources
         String playSrc = (String) infoMap.get("url");//电影播放路径
         String itemId = getItemIdByFilmPlayUrl(playSrc,itemPattern);
@@ -180,49 +239,7 @@ public class IQYUtils {
         resource.setPlayCount(0);
         resource.setCreateDate(sdf.format(now));
         resource.save();
-        //save category
-        List<Map> categorysList = (List<Map>) infoMap.get("categories");
-        MediaRefCategory mediaRefCategory = new MediaRefCategory();
-        MediaCategory mediaCategory = MediaCategory.getMediaCategoryRepository().selectCategoryByType(pkgType);
-        if(categorysList.size() > 0){
-            CategoryProperty categoryProperty = CategoryProperty.getCategoryPropertyRepository().selectTypeByCategoryId(mediaCategory.getId());
-            for(Map category : categorysList){
-                params.clear();
-                String categoryName = (String) category.get("name");
-                params.put("id", categoryProperty.getId());
-                params.put("params", categoryName);
-                CategoryPropertyValue categoryPropertyValue = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
-                if (null != categoryPropertyValue) {
-                    mediaRefCategory.setMediaId(packageMediaId);
-                    mediaRefCategory.setCategoryId(mediaCategory.getId());
-                    mediaRefCategory.setPropertyId(categoryProperty.getId());
-                    mediaRefCategory.setProperty(categoryProperty.getName());
-                    mediaRefCategory.setPropertyValueId(categoryPropertyValue.getId());
-                    mediaRefCategory.save();
-                }
-            }
-        }
-        if(year != null){
-            CategoryProperty yearCategoryProperty = CategoryProperty.getCategoryPropertyRepository().selectYearByCategoryId(mediaCategory.getId());
-            mediaRefCategory.setMediaId(packageMediaId);
-            mediaRefCategory.setCategoryId(mediaCategory.getId());
-            mediaRefCategory.setPropertyId(yearCategoryProperty.getId());
-            mediaRefCategory.setProperty(yearCategoryProperty.getName());
-            params.clear();
-            params.put("id", yearCategoryProperty.getId());
-            params.put("params", year);
-            CategoryPropertyValue categoryPropertyValue1 = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
-            if(categoryPropertyValue1 == null){
-                params.clear();
-                params.put("id", yearCategoryProperty.getId());
-                params.put("params", "更早");
-                categoryPropertyValue1 = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
-                mediaRefCategory.setPropertyValueId(categoryPropertyValue1.getId());
-            }else{
-                mediaRefCategory.setPropertyValueId(categoryPropertyValue1.getId());
-            }
-            mediaRefCategory.save();
-        }
+
         Media media2 = Media.getMediaRepository().getMediaDetail(packageMediaId);
         EsController.addEsDate(media2);
         Long endTime = System.currentTimeMillis();
@@ -327,7 +344,11 @@ public class IQYUtils {
         Integer latestOrder = (Integer) data.get("latestOrder");
         param.put("page", 1);
         param.put("size", latestOrder);
-        addSubMedia(param, restTemplate, data, packageMedia, sdf);
+        Integer realUpdateOrder = addSubMedia(param, restTemplate, data, packageMedia, sdf);
+        if(packageMedia.getSerial() >= latestOrder || realUpdateOrder == 0){
+            return;
+        }
+
         packageMedia.setUpdateDate(sdf.format(new Date()));
         packageMedia.setSerial(latestOrder);
         Media.getMediaRepository().updateByPrimaryKeySelective(packageMedia);
@@ -343,12 +364,13 @@ public class IQYUtils {
 
     }
 
-    private static void addSubMedia(Map param, RestTemplate restTemplate, Map data, Media packageMedia, SimpleDateFormat sdf) {
-        String response = restTemplate.getForObject("https://mixer.video.iqiyi.com/jp/mixin/videos/avlist?albumId={albumId}&page={page}&size={size}", String.class, param);
+    private static Integer addSubMedia(Map param, RestTemplate restTemplate, Map data, Media packageMedia, SimpleDateFormat sdf) {
+        Integer realUpdateSerial = 0;
+            String response = restTemplate.getForObject("https://mixer.video.iqiyi.com/jp/mixin/videos/avlist?albumId={albumId}&page={page}&size={size}", String.class, param);
         String infoMapString = response.split("tvInfoJs=")[1];
         Map infoMap = JSON.parseObject(infoMapString);
         if(infoMap == null){
-            return;
+            return realUpdateSerial;
         }
 
         List<Map> mixinVideos = (List<Map>) infoMap.get("mixinVideos");
@@ -399,6 +421,7 @@ public class IQYUtils {
             subMedia.setUpdateDate(sdf.format(now));
             subMedia.saveMedia(subMedia);
             Integer subVideoId = subMedia.getId();
+            realUpdateSerial = order;
 
             Resource resource = new Resource();
             resource.setMediaId(subVideoId);
@@ -425,6 +448,7 @@ public class IQYUtils {
             resource.setCreateDate(sdf.format(new Date()));
             resource.save();
         }
+        return realUpdateSerial;
     }
 
     private static Boolean checkSubMediaExsit(String playUrl) {
@@ -457,9 +481,6 @@ public class IQYUtils {
             Integer maxSerial = mediaRepository.selectMaxSerialByPackageMediaId(params);
             if(videoCount.intValue() == maxSerial){
                 logger.info(name + " 电视剧已经集全");
-                return null;
-            }else if(videoCount.intValue() < maxSerial){
-                logger.info(name + " 怕是遇到鬼了");
                 return null;
             }else{
                 packageMedia.setSerial(maxSerial);
@@ -598,4 +619,294 @@ public class IQYUtils {
         }
     }
 
+    public static void addAnimeMedia(String albumId, RestTemplate restTemplate) throws Exception {
+        Map param = new HashMap();
+        param.put("albumId", albumId);
+        String packageResponse = restTemplate.getForObject("http://pcw-api.iqiyi.com/video/video/videoinfowithuser/{albumId}", String.class, param);
+        Map tvInfoMap = JSON.parseObject(packageResponse);
+        Media packageMedia = dealAnimePageInfo(tvInfoMap);
+        if(packageMedia == null){
+            return;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss ");
+        Map data = (Map) tvInfoMap.get("data");
+        Integer latestOrder = (Integer) data.get("latestOrder");
+        Integer page = 1;
+        Integer size = 120;
+        Integer realUpdateOrder = 0;
+        if(latestOrder > 120){
+            page = latestOrder / 120 + 1;
+        }
+        for(int i = 1; i <= page; i++){
+            param.put("page", i);
+            param.put("size", size);
+            realUpdateOrder += addSubAnimeMedia(param, restTemplate, data, packageMedia, sdf);
+        }
+        if(packageMedia.getSerial() >= latestOrder || realUpdateOrder == 0){
+            return;
+        }
+
+        packageMedia.setUpdateDate(sdf.format(new Date()));
+        packageMedia.setSerial(latestOrder);
+        Media.getMediaRepository().updateByPrimaryKeySelective(packageMedia);
+
+        /**
+         * 修改搜索引擎中的信息
+         */
+        Integer id = packageMedia.getId();
+        Media media2 = Media.getMediaRepository().getMediaDetail(id);
+        EsController.addEsDate(media2);
+        System.out.println("====================！！已更新搜索引擎信息！！========================");
+    }
+
+    private static Media dealAnimePageInfo(Map tvInfoMap) throws Exception {
+        SimpleDateFormat sdf = new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss ");
+        Date now = new Date();
+        Map data = (Map) tvInfoMap.get("data");
+        String name = (String) data.get("name");
+        Integer videoCount = (Integer) data.get("videoCount");
+        Integer lastOrder = (Integer) data.get("latestOrder");
+        MediaRepository mediaRepository = Media.getMediaRepository();
+        Example example = new Example(Media.class);
+        example.createCriteria().andEqualTo("name", name)
+                .andEqualTo("pkgType", animepkgType)
+                .andEqualTo("type", "packages");
+        List<Media> packageMediaList = mediaRepository.selectByExample(example);
+        if(packageMediaList.size() > 1){
+            logger.info(name + "  媒资包有多个");
+            return null;
+        }else if(packageMediaList.size() == 1){
+            Media packageMedia = packageMediaList.get(0);
+            packageMedia.setTotal(videoCount);
+            Map params = new HashMap();
+            params.put("mediaId", packageMedia.getId());
+            params.put("resourceType", sourceType);
+            Integer maxSerial = mediaRepository.selectMaxSerialByPackageMediaId(params);
+            if(videoCount.intValue() == maxSerial){
+                logger.info(name + " 动漫已经集全");
+                return null;
+            }else{
+                packageMedia.setSerial(maxSerial);
+                return packageMedia;
+            }
+        }else{
+            Long startTime = System.currentTimeMillis();
+            Object scoreValue = (Object) data.get("score");
+            Integer score = new BigDecimal(scoreValue.toString()).multiply(new BigDecimal(10)).intValue();
+            //添加媒资或媒资包
+            //获取演员信息
+            String directors = "";
+            String actors = "";
+            Map actorInfos = (Map) data.get("cast");
+            List<Map> directorsMaps = (List<Map>) actorInfos.get("directors");
+            for(Map director : directorsMaps){
+                directors += director.get("name") + ",";
+            }
+            List<Map> actorsMaps = (List<Map>) actorInfos.get("mainActors");
+            for(Map actor : actorsMaps){
+                actors += actor.get("name") + ",";
+            }
+            if(!StringUtils.isEmpty(directors)){
+                directors = directors.substring(0, directors.length() - 1);
+            }
+            if(!StringUtils.isEmpty(actors)){
+                actors = actors.substring(0, actors.length() - 1);
+            }
+            Long issueTime = (Long) data.get("publishTime");
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
+            String year = null;
+            if(issueTime != null){
+                Date issueDate = new Date(issueTime);
+                year = sdf1.format(issueDate);
+            }
+            String description = (String) data.get("description");
+
+            Media media = new Media();
+            media.setParentId(0);
+            media.setPkgType(animepkgType);
+            media.setCreateDate(sdf.format(now));
+            media.setType(MediaPackageType.TYPE_PACKAGES.getIndex());
+            media.setTerminal("pc+app");
+            media.setState("1");
+            media.setPlayCount(0L);
+            media.setSearchCount(0);
+
+            media.setName(name);
+            media.setDoubanScore(score);
+            media.setDirector(directors);
+            media.setStarring(actors);
+            media.setTotal(videoCount);
+            media.setUpsaleDate(year);
+            media.setIntroduce(description);
+            media.setDetail(description);
+            media.save();
+            media.setSerial(0);
+
+            Integer packageMediaId = media.getId();
+
+            //save poster
+            Poster poster = new Poster();
+            String posterSrc = (String) data.get("imageUrl");
+            posterSrc = DownloadImage.download(posterSrc);//下载媒资包图片
+
+            poster.setMediaId(packageMediaId);
+            poster.setType("title");
+            poster.setTitle(name);
+            poster.setMiddle(IMGURL + posterSrc);
+            poster.setCreateDate(sdf.format(now));
+            poster.save();
+
+            //save actors
+            for(Map director : directorsMaps){
+                addActorInfo(director, "director", packageMediaId);
+            }
+            for(Map actor : actorsMaps){
+                addActorInfo(actor, "actor", packageMediaId);
+            }
+            MediaRefCategory mediaRefCategory = new MediaRefCategory();
+            Map params = new HashMap();
+            List<Map> categorysList = (List<Map>) data.get("categories");
+            MediaCategory mediaCategory = MediaCategory.getMediaCategoryRepository().selectCategoryByType(animepkgType);
+            if(categorysList.size() > 0){
+                List<CategoryProperty> categoryPropertyList = CategoryProperty.getCategoryPropertyRepository().selectByCategoryId(mediaCategory.getId());
+                for(CategoryProperty categoryProperty : categoryPropertyList){
+//                    CategoryProperty categoryProperty = CategoryProperty.getCategoryPropertyRepository().selectTypeByCategoryId(mediaCategory.getId());
+                    for(Map category : categorysList){
+                        params.clear();
+                        String categoryName = (String) category.get("name");
+                        if(categoryName.endsWith("剧") && !categoryName.equals("喜剧")){
+                            categoryName = categoryName.substring(0, categoryName.length()-1);
+                        }
+                        params.put("id", categoryProperty.getId());
+                        params.put("params", categoryName);
+                        CategoryPropertyValue categoryPropertyValue = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
+                        if (null != categoryPropertyValue) {
+                            mediaRefCategory.setMediaId(packageMediaId);
+                            mediaRefCategory.setCategoryId(mediaCategory.getId());
+                            mediaRefCategory.setPropertyId(categoryProperty.getId());
+                            mediaRefCategory.setProperty(categoryProperty.getName());
+                            mediaRefCategory.setPropertyValueId(categoryPropertyValue.getId());
+                            mediaRefCategory.save();
+                        }
+                    }
+                }
+
+            }
+            if(year != null){
+                CategoryProperty yearCategoryProperty = CategoryProperty.getCategoryPropertyRepository().selectYearByCategoryId(mediaCategory.getId());
+                mediaRefCategory.setMediaId(packageMediaId);
+                mediaRefCategory.setCategoryId(mediaCategory.getId());
+                mediaRefCategory.setPropertyId(yearCategoryProperty.getId());
+                mediaRefCategory.setProperty(yearCategoryProperty.getName());
+                params.clear();
+                params.put("id", yearCategoryProperty.getId());
+                params.put("params", year);
+                CategoryPropertyValue categoryPropertyValue1 = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
+                if(categoryPropertyValue1 == null){
+                    params.clear();
+                    params.put("id", yearCategoryProperty.getId());
+                    params.put("params", "更早");
+                    categoryPropertyValue1 = CategoryPropertyValue.getCategoryPropertyValueRepository().selectPropertyValueById(params);
+                    mediaRefCategory.setPropertyValueId(categoryPropertyValue1.getId());
+                }else{
+                    mediaRefCategory.setPropertyValueId(categoryPropertyValue1.getId());
+                }
+                mediaRefCategory.save();
+            }
+
+            Media media2 = Media.getMediaRepository().getMediaDetail(packageMediaId);
+            EsController.addEsDate(media2);
+            Long endTime = System.currentTimeMillis();
+            logger.info(SourceType.TYPE_IQIYI.getName() + " " + name + "  媒资包创建结束, hs：" + (endTime - startTime));
+            return media;
+        }
+    }
+
+    private static Integer addSubAnimeMedia(Map param, RestTemplate restTemplate, Map data, Media packageMedia, SimpleDateFormat sdf) {
+        Integer realUpdateSerial = 0;
+        String response = restTemplate.getForObject("https://mixer.video.iqiyi.com/jp/mixin/videos/avlist?albumId={albumId}&page={page}&size={size}", String.class, param);
+        String infoMapString = response.split("tvInfoJs=")[1];
+        Map infoMap = JSON.parseObject(infoMapString);
+        if(infoMap == null){
+            return realUpdateSerial;
+        }
+
+        List<Map> mixinVideos = (List<Map>) infoMap.get("mixinVideos");
+        Date now = new Date();
+        for(Map video : mixinVideos){
+            Media subMedia = new Media();
+            MediaRepository mediaRepository = Media.getMediaRepository();
+            String mediaName = (String) video.get("name");
+            Integer timeLength = (Integer) video.get("duration");
+            String playUrl = (String) video.get("url");
+            Boolean flag = checkSubMediaExsit(playUrl);
+            if(flag){
+                continue;
+            }
+            String itemId = playUrl.split("/v_")[1];
+            itemId = itemId.split(".html")[0];
+            String shortTitle = (String) video.get("shortTitle");
+            Integer order = (Integer) video.get("order");
+            String desc = (String) video.get("description");
+            String subtitle = (String) video.get("subtitle");
+            Object scoreValue = (Object) data.get("score");
+            Integer score = new BigDecimal(scoreValue.toString()).multiply(new BigDecimal(10)).intValue();
+
+            subMedia.setIntroduce(subtitle);
+            subMedia.setDetail(desc);
+            subMedia.setTerminal("pc+app");
+            subMedia.setDoubanScore(score);
+
+            subMedia.setParentId(packageMedia.getId());
+            subMedia.setPkgType(animepkgType);
+            if (shortTitle.contains("预告")) {
+                subMedia.setState("1");
+                subMedia.setType("trailer");
+            } else if (shortTitle.contains("花絮")) {
+                subMedia.setState("1");
+                subMedia.setType("tidbits");
+            } else {
+                subMedia.setState("1");
+                subMedia.setType("main");
+            }
+            subMedia.setPlayLength(timeLength);
+            subMedia.setName(mediaName);
+            subMedia.setSerial(order);
+            //set default
+            subMedia.setPlayCount(0L);
+            subMedia.setSearchCount(0);
+            subMedia.setCreateDate(sdf.format(now));
+            subMedia.setUpdateDate(sdf.format(now));
+            subMedia.saveMedia(subMedia);
+            Integer subVideoId = subMedia.getId();
+            realUpdateSerial = order;
+
+            Resource resource = new Resource();
+            resource.setMediaId(subVideoId);
+            resource.setResourceTypeId(sourceType);
+            resource.setThirdId(itemId);
+            resource.setFieldName(fieldName);
+            if (shortTitle.contains("预告")) {
+                resource.setState(0 + "");
+                resource.setType("trailer");
+            } else if (shortTitle.contains("花絮")) {
+                resource.setState(0 + "");
+                resource.setType("tidbits");
+            } else {
+                resource.setState(1 + "");
+                resource.setType("main");
+            }
+            resource.setPlayType("third");
+            resource.setSerial(order);
+            resource.setName(mediaName);
+            resource.setPlayUrl(playUrl);
+            resource.setKeyword(mediaName + " " + packageMedia.getStarring() + " " + packageMedia.getDirector());
+            resource.setTerminal("pc+app");
+            resource.setPlayCount(0);
+            resource.setCreateDate(sdf.format(new Date()));
+            resource.save();
+        }
+        return realUpdateSerial;
+    }
 }

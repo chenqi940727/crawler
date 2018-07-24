@@ -34,21 +34,21 @@ public class CCTVMeidiaCustomer implements Runnable {
         while(flag){
             SFTPUtil sftpUtil = SFTPUtil.getInstance();
             sftpUtil.login();
-            if(redisDao.exists(RedisKey.CCTV_VIDEO_WC) && redisDao.getListSize(RedisKey.CCTV_VIDEO_WC) > 0){
-                Long startTime = System.currentTimeMillis();
-                String info = redisDao.lPop(RedisKey.CCTV_VIDEO_WC).toString();
-                String playUrl = info.split("-yztx-")[0];
-                Connection connect = Jsoup.connect(playUrl.toString());
-                try {
-                    Document document = connect.ignoreContentType(true).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(3000).get();
-                    System.out.println("zzzzz");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }else{
-                flag = false;
-                sftpUtil.logout();
-            }
+//            if(redisDao.exists(RedisKey.CCTV_VIDEO_WC) && redisDao.getListSize(RedisKey.CCTV_VIDEO_WC) > 0){
+//                Long startTime = System.currentTimeMillis();
+//                String info = redisDao.lPop(RedisKey.CCTV_VIDEO_WC).toString();
+//                String playUrl = info.split("-yztx-")[0];
+//                Connection connect = Jsoup.connect(playUrl.toString());
+//                try {
+//                    Document document = connect.ignoreContentType(true).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(3000).get();
+//                    System.out.println("zzzzz");
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }else{
+//                flag = false;
+//                sftpUtil.logout();
+//            }
         }
 
     }

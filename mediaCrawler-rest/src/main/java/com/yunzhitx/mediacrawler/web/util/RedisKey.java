@@ -7,35 +7,28 @@ package com.yunzhitx.mediacrawler.web.util;
  */
 public class RedisKey {
 
-    public static final String FILM_ALBUMID_LIST = "film_albumid_list";
 
-    public static final String MEDIA_INFO = "media_info";
 
-    public static final String FILM_ALBUMID_NAME = "film_albumid_name";
+    //common id - name
+    public static final String ID_TO_NAME = "id_to_name";
 
     public static final String DEAL_RESULT = "deal_result";
 
-    public static final String TX_TV_DEAL_RESULT = "tx_tv_deal_result";
+    //iqy tv film anime
+    public static final String IQY_TV_ALBUMID_LIST = "iqy_tv_albumid_list";
 
-    public static final String CCTV_VIDEO_WC = "cctv_video_wc";
+    public static final String IQY_FILM_ALBUMID_LIST = "iqy_film_albumid_list";
 
-    public static final String MEDIA_ES = "media_es";
+    public static final String IQY_ANIME_ALBUMID_LIST = "iqy_anime_albumid_list";
 
-    public static final String DEAL_FAILED = "deal_failed";
+    //tx tv film anime variety
+    public static final String TX_TV_ALBUMID_LIST = "tx_tv_albumid_list";
 
-    public static final String TX_TV_DEAL_FAILED = "tx_tvdeal_failed";
+    public static final String TX_FILM_ALBUMID_LIST = "tx_film_albumid_list";
 
+    public static final String TX_ANIME_ALBUMID_LIST = "tx_anime_albumid_list";
 
-    public static final String TV_ALBUMID_LIST = "tv_albumid_list";
-
-    public static final String TV_ALBUMID_NAME = "tv_albumid_name";
-
-
-    public static final String TV_TXID_LIST = "tv_txid_list";
-
-    public static final String TV_TXID_NAME = "tv_txid_name";
-
-
+    public static final String TX_VARIETY_ALBUMID_LIST = "tx_variety_albumid_list";
 
 
 

@@ -9,7 +9,6 @@ import com.yunzhitx.mediacrawler.web.rest.redis.BaseRedisDao;
 import com.yunzhitx.mediacrawler.web.util.RedisKey;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.util.StringUtils;
 
 
 /**
@@ -17,13 +16,13 @@ import org.springframework.util.StringUtils;
  * @Description: TODO
  * @date 2018/5/30$ 15:43$
  */
-public class TxTVCrawler extends BreadthCrawler{
+public class TxAnimeCrawler extends BreadthCrawler{
 
     private static volatile Integer count = 0;
 
-    private Integer sourceType = SourceType.TYPE_TENXUN.getIndex(); //爱奇艺视频id
+    private Integer sourceType = SourceType.TYPE_TENXUN.getIndex(); //腾讯视频id
     private static final String fieldName = SourceType.TYPE_TENXUN.getName();
-    private static final String pkgType = MediaType.TYPE_TV.getName();
+    private static final String animepkgType = MediaType.TYPE_ANIMATION.getName();
     private static final String IMGURL = "http://juhe.fs.cdtown.cn/media/";
     private static final String tenantFlag = "yztx";
 
@@ -36,7 +35,7 @@ public class TxTVCrawler extends BreadthCrawler{
      * @param autoParse 是否根据设置的正则自动探测新URL
      * @param redisDao
      */
-    public TxTVCrawler(String crawlPath, boolean autoParse, BaseRedisDao redisDao) {
+    public TxAnimeCrawler(String crawlPath, boolean autoParse, BaseRedisDao redisDao) {
         super(crawlPath, autoParse);
         this.redisDao = redisDao;
     }
@@ -53,7 +52,7 @@ public class TxTVCrawler extends BreadthCrawler{
             Element img = a.select("img").first();
             String name = img.attr("alt");
 
-            redisDao.addList(RedisKey.TX_TV_ALBUMID_LIST, txTvId);
+            redisDao.addList(RedisKey.TX_ANIME_ALBUMID_LIST, txTvId);
             redisDao.addMap(RedisKey.ID_TO_NAME, txTvId, name + " - " + page.url());
         }
     }
